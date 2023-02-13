@@ -1,43 +1,63 @@
-import { useState, useCallback } from 'react'
-import { Card, Page, Layout, TextContainer, Image, Stack, Heading, Form, TextField, FormLayout, EmptyState } from '@shopify/polaris'
-import { useForm, useField, notEmptyString } from '@shopify/react-form'
-import { TitleBar, ContextualSaveBar, ResourcePicker } from '@shopify/app-bridge-react'
-import store from 'store-js'
+/* eslint-disable react/react-in-jsx-scope */
+import { useState, useCallback } from "react";
+import {
+  Card,
+  Page,
+  Layout,
+  TextContainer,
+  Image,
+  Stack,
+  Heading,
+  Form,
+  TextField,
+  FormLayout,
+  EmptyState,
+} from "@shopify/polaris";
+import { useForm, useField, notEmptyString } from "@shopify/react-form";
+import {
+  TitleBar,
+  ContextualSaveBar,
+  ResourcePicker,
+} from "@shopify/app-bridge-react";
+import store from "store-js";
+import ResourceListWithProducts from "../components/ResourceListWithProducts";
 
-import { trophyImage } from '../assets'
+import { trophyImage } from "../assets";
 
-const img = 'https://cdn.shopify.com/s/files/1/0757/9955/files/empty-state.svg'
+const img = "https://cdn.shopify.com/s/files/1/0757/9955/files/empty-state.svg";
 
 export default function HomePage() {
-  const [showResourcePicker, setShowResourcePicker] = useState(false)
-  const onSubmit = (body) => console.log('submit', body)
+  const [showResourcePicker, setShowResourcePicker] = useState(false);
+  const onSubmit = (body) => console.log("submit", body);
   const {
     fields: { title },
     dirty,
     reset,
     submitting,
     submit,
-    makeClean,
   } = useForm({
     fields: {
       title: useField({
-        value: 'the title' || '',
-        validates: [notEmptyString('default title')],
+        value: "the title" || "",
+        validates: [notEmptyString("default title")],
       }),
     },
     onSubmit,
-  })
+  });
 
-  const emptyState = !store.get('ids')
+  const emptyState = !store.get("ids");
 
-  const toggleResourcePicker = useCallback(() => setShowResourcePicker(!showResourcePicker), [showResourcePicker])
+  const toggleResourcePicker = useCallback(
+    () => setShowResourcePicker(!showResourcePicker),
+    [showResourcePicker]
+  );
 
   const handleSelection = useCallback((resources) => {
-    const idsFromResources = resources.selection.map((product) => product.id)
-    console.log("idsFromResources:", idsFromResources)
-    setShowResourcePicker(false)
-    store.set('ids', idsFromResources)
-  }, [])
+    const idsFromResources = resources.selection.map((product) => product.id);
+    console.log("idsFromResources:", idsFromResources);
+    setShowResourcePicker(false);
+    store.set("ids", idsFromResources);
+  }, []);
 
   return (
     <Page narrowWidth>
@@ -45,17 +65,32 @@ export default function HomePage() {
       <Layout>
         <Layout.Section>
           <Card sectioned>
-            <Stack wrap={false} spacing="extraTight" distribution="trailing" alignment="center">
+            <Stack
+              wrap={false}
+              spacing="extraTight"
+              distribution="trailing"
+              alignment="center"
+            >
               <Stack.Item fill>
                 <TextContainer spacing="loose">
                   <Heading>使用说明</Heading>
-                  <p>我们目前用的是shopify 我们现在需要的是 能把一件代发仓的库存数字 同步到Shopify后台</p>
-                  <p>你这边可以做shopify api接口么，是个物流公司 他们一件代发 我想把他们库存可以同步到我shopify</p>
+                  <p>
+                    我们目前用的是shopify 我们现在需要的是
+                    能把一件代发仓的库存数字 同步到Shopify后台
+                  </p>
+                  <p>
+                    你这边可以做shopify api接口么，是个物流公司 他们一件代发
+                    我想把他们库存可以同步到我shopify
+                  </p>
                 </TextContainer>
               </Stack.Item>
               <Stack.Item>
-                <div style={{ padding: '0 20px' }}>
-                  <Image source={trophyImage} alt="Nice work on building a Shopify app" width={120} />
+                <div style={{ padding: "0 20px" }}>
+                  <Image
+                    source={trophyImage}
+                    alt="Nice work on building a Shopify app"
+                    width={120}
+                  />
                 </div>
               </Stack.Item>
             </Stack>
@@ -66,13 +101,13 @@ export default function HomePage() {
           <Form>
             <ContextualSaveBar
               saveAction={{
-                label: 'Save',
+                label: "Save",
                 onAction: submit,
                 loading: submitting,
                 disabled: submitting,
               }}
               discardAction={{
-                label: 'Discard',
+                label: "Discard",
                 onAction: reset,
                 loading: submitting,
                 disabled: submitting,
@@ -82,7 +117,12 @@ export default function HomePage() {
             />
             <FormLayout>
               <Card sectioned title="Title">
-                <TextField {...title} label="Title" labelHidden helpText="Only store staff can see this title" />
+                <TextField
+                  {...title}
+                  label="Title"
+                  labelHidden
+                  helpText="Only store staff can see this title"
+                />
               </Card>
 
               <Card title="选择商品">
@@ -93,13 +133,19 @@ export default function HomePage() {
                   //   onAction: toggleResourcePicker,
                   // }}
                 />
-                <ResourcePicker resourceType="Product" showVariants={false} open={showResourcePicker} onSelection={(resources) => handleSelection(resources)} onCancel={toggleResourcePicker}  />
+                <ResourcePicker
+                  resourceType="Product"
+                  showVariants={false}
+                  open={showResourcePicker}
+                  onSelection={(resources) => handleSelection(resources)}
+                  onCancel={toggleResourcePicker}
+                />
                 {emptyState ? (
                   <Layout>
                     <EmptyState
                       heading="选择需要同步库存的商品"
                       action={{
-                        content: 'Select products',
+                        content: "Select products",
                         onAction: toggleResourcePicker,
                       }}
                       image={img}
@@ -108,7 +154,7 @@ export default function HomePage() {
                     </EmptyState>
                   </Layout>
                 ) : (
-                  'You selected products'
+                  <ResourceListWithProducts></ResourceListWithProducts>
                 )}
               </Card>
             </FormLayout>
@@ -116,5 +162,5 @@ export default function HomePage() {
         </Layout.Section>
       </Layout>
     </Page>
-  )
+  );
 }
