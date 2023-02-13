@@ -1,86 +1,120 @@
-import {
-  Card,
-  Page,
-  Layout,
-  TextContainer,
-  Image,
-  Stack,
-  Link,
-  Heading,
-} from "@shopify/polaris";
-import { TitleBar } from "@shopify/app-bridge-react";
+import { useState, useCallback } from 'react'
+import { Card, Page, Layout, TextContainer, Image, Stack, Heading, Form, TextField, FormLayout, EmptyState } from '@shopify/polaris'
+import { useForm, useField, notEmptyString } from '@shopify/react-form'
+import { TitleBar, ContextualSaveBar, ResourcePicker } from '@shopify/app-bridge-react'
+import store from 'store-js'
 
-import { trophyImage } from "../assets";
+import { trophyImage } from '../assets'
 
-import { ProductsCard } from "../components";
+const img = 'https://cdn.shopify.com/s/files/1/0757/9955/files/empty-state.svg'
 
 export default function HomePage() {
+  const [showResourcePicker, setShowResourcePicker] = useState(false)
+  const onSubmit = (body) => console.log('submit', body)
+  const {
+    fields: { title },
+    dirty,
+    reset,
+    submitting,
+    submit,
+    makeClean,
+  } = useForm({
+    fields: {
+      title: useField({
+        value: 'the title' || '',
+        validates: [notEmptyString('default title')],
+      }),
+    },
+    onSubmit,
+  })
+
+  const emptyState = !store.get('ids')
+
+  const toggleResourcePicker = useCallback(() => setShowResourcePicker(!showResourcePicker), [showResourcePicker])
+
+  const handleSelection = useCallback((resources) => {
+    const idsFromResources = resources.selection.map((product) => product.id)
+    console.log("idsFromResources:", idsFromResources)
+    setShowResourcePicker(false)
+    store.set('ids', idsFromResources)
+  }, [])
+
   return (
     <Page narrowWidth>
-      <TitleBar title="App name" primaryAction={null} />
+      <TitleBar title="同步库存" primaryAction={null} />
       <Layout>
         <Layout.Section>
           <Card sectioned>
-            <Stack
-              wrap={false}
-              spacing="extraTight"
-              distribution="trailing"
-              alignment="center"
-            >
+            <Stack wrap={false} spacing="extraTight" distribution="trailing" alignment="center">
               <Stack.Item fill>
                 <TextContainer spacing="loose">
-                  <Heading>Nice work on building a Shopify app 🎉</Heading>
-                  <p>
-                    Your app is ready to explore! It contains everything you
-                    need to get started including the{" "}
-                    <Link url="https://polaris.shopify.com/" external>
-                      Polaris design system
-                    </Link>
-                    ,{" "}
-                    <Link url="https://shopify.dev/api/admin-graphql" external>
-                      Shopify Admin API
-                    </Link>
-                    , and{" "}
-                    <Link
-                      url="https://shopify.dev/apps/tools/app-bridge"
-                      external
-                    >
-                      App Bridge
-                    </Link>{" "}
-                    UI library and components.
-                  </p>
-                  <p>
-                    Ready to go? Start populating your app with some sample
-                    products to view and test in your store.{" "}
-                  </p>
-                  <p>
-                    Learn more about building out your app in{" "}
-                    <Link
-                      url="https://shopify.dev/apps/getting-started/add-functionality"
-                      external
-                    >
-                      this Shopify tutorial
-                    </Link>{" "}
-                    📚{" "}
-                  </p>
+                  <Heading>使用说明</Heading>
+                  <p>我们目前用的是shopify 我们现在需要的是 能把一件代发仓的库存数字 同步到Shopify后台</p>
+                  <p>你这边可以做shopify api接口么，是个物流公司 他们一件代发 我想把他们库存可以同步到我shopify</p>
                 </TextContainer>
               </Stack.Item>
               <Stack.Item>
-                <div style={{ padding: "0 20px" }}>
-                  <Image
-                    source={trophyImage}
-                    alt="Nice work on building a Shopify app"
-                    width={120}
-                  />
+                <div style={{ padding: '0 20px' }}>
+                  <Image source={trophyImage} alt="Nice work on building a Shopify app" width={120} />
                 </div>
               </Stack.Item>
             </Stack>
           </Card>
         </Layout.Section>
+
         <Layout.Section>
-          <ProductsCard />
+          <Form>
+            <ContextualSaveBar
+              saveAction={{
+                label: 'Save',
+                onAction: submit,
+                loading: submitting,
+                disabled: submitting,
+              }}
+              discardAction={{
+                label: 'Discard',
+                onAction: reset,
+                loading: submitting,
+                disabled: submitting,
+              }}
+              visible={dirty}
+              fullWidth
+            />
+            <FormLayout>
+              <Card sectioned title="Title">
+                <TextField {...title} label="Title" labelHidden helpText="Only store staff can see this title" />
+              </Card>
+
+              <Card title="选择商品">
+                <TitleBar
+                  title="库存同步"
+                  // primaryAction={{
+                  //   content: 'Select products',
+                  //   onAction: toggleResourcePicker,
+                  // }}
+                />
+                <ResourcePicker resourceType="Product" showVariants={false} open={showResourcePicker} onSelection={(resources) => handleSelection(resources)} onCancel={toggleResourcePicker}  />
+                {emptyState ? (
+                  <Layout>
+                    <EmptyState
+                      heading="选择需要同步库存的商品"
+                      action={{
+                        content: 'Select products',
+                        onAction: toggleResourcePicker,
+                      }}
+                      image={img}
+                    >
+                      <p>选择需要同步库存的商品</p>
+                    </EmptyState>
+                  </Layout>
+                ) : (
+                  'You selected products'
+                )}
+              </Card>
+            </FormLayout>
+          </Form>
         </Layout.Section>
       </Layout>
     </Page>
-  );
+  )
 }
