@@ -1,0 +1,17 @@
+{
+  "name": "webhook",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "crypto": "^1.0.1",
+    "express": "^4.18.2",
+    "raw-body": "^2.5.1"
+  },
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "devDependencies": {
+    "dotenv": "^16.0.3"
+  }
+}
