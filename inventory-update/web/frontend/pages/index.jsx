@@ -10,25 +10,65 @@ import {
   Heading,
   Form,
   TextField,
+  Button,
   FormLayout,
-  EmptyState,
+  // EmptyState,
+  Link,
 } from "@shopify/polaris";
 import { useForm, useField, notEmptyString } from "@shopify/react-form";
 import {
-  TitleBar,
+  // TitleBar,
   ContextualSaveBar,
   ResourcePicker,
 } from "@shopify/app-bridge-react";
 import store from "store-js";
-import ResourceListWithProducts from "../components/ResourceListWithProducts";
+import { useAuthenticatedFetch } from "../hooks/useAuthenticatedFetch";
+// import ResourceListWithProducts from "../components/ResourceListWithProducts";
 
 import { trophyImage } from "../assets";
+// import ResourceListWithProducts from "../components/ResourceListWithProducts";
+import { SelectedProductsForSync } from "../components/SelectedProductsForSync";
 
-const img = "https://cdn.shopify.com/s/files/1/0757/9955/files/empty-state.svg";
+// const img = "https://cdn.shopify.com/s/files/1/0757/9955/files/empty-state.svg";
+const getSelectedProductsInfo_url = "/api/selected-products";
 
 export default function HomePage() {
   const [showResourcePicker, setShowResourcePicker] = useState(false);
-  const onSubmit = (body) => console.log("submit", body);
+  const [responseData, setResponseData] = useState([]);
+  const [isFetching, setIsFetching] = useState(false);
+
+  //[x] 处理用户提交表单 onSubmit 只会获取 useForm 里面的 field 字段内容
+  const onSubmit = (body) => {
+    console.log("submit body:", body);
+    return { status: "success" };
+  };
+
+  const fetch = useAuthenticatedFetch();
+
+  const fetchProducts = async () => {
+    try {
+      setIsFetching(true);
+      const response = await fetch(getSelectedProductsInfo_url, {
+        method: "POST",
+        body: JSON.stringify(store.get("ids")),
+        headers: { "Content-Type": "application/json" },
+      });
+      if (response.ok) {
+        const responseProducts = await response.json();
+        setResponseData(responseProducts);
+        console.log("responseProducts:>> ", responseProducts);
+      }
+    } catch (error) {
+      console.log("error:>> ", error.message);
+    } finally {
+      setIsFetching(false);
+    }
+  };
+
+  // const onSubmit = (body) => {
+
+  // };
+
   const {
     fields: { title },
     dirty,
@@ -38,30 +78,37 @@ export default function HomePage() {
   } = useForm({
     fields: {
       title: useField({
-        value: "the title" || "",
+        value: "3" || "",
         validates: [notEmptyString("default title")],
       }),
     },
     onSubmit,
   });
 
-  const emptyState = !store.get("ids");
-
   const toggleResourcePicker = useCallback(
     () => setShowResourcePicker(!showResourcePicker),
     [showResourcePicker]
   );
 
+  //[x] 处理用户选择商品 当用户选择了商品那么需要在这里去查询后台
   const handleSelection = useCallback((resources) => {
     const idsFromResources = resources.selection.map((product) => product.id);
     console.log("idsFromResources:", idsFromResources);
     setShowResourcePicker(false);
     store.set("ids", idsFromResources);
+    fetchProducts();
   }, []);
 
   return (
     <Page narrowWidth>
-      <TitleBar title="同步库存" primaryAction={null} />
+      {/* <TitleBar title="同步库存" primaryAction={null} /> */}
+      {/* <TitleBar
+                  title="库存同步"
+                  primaryAction={{
+                    content: "Select products",
+                    onAction: toggleResourcePicker,
+                  }}
+                /> */}
       <Layout>
         <Layout.Section>
           <Card sectioned>
@@ -82,6 +129,8 @@ export default function HomePage() {
                     你这边可以做shopify api接口么，是个物流公司 他们一件代发
                     我想把他们库存可以同步到我shopify
                   </p>
+
+                  <Link url="/test"> go test page</Link>
                 </TextContainer>
               </Stack.Item>
               <Stack.Item>
@@ -116,23 +165,16 @@ export default function HomePage() {
               fullWidth
             />
             <FormLayout>
-              <Card sectioned title="Title">
+              <Card sectioned title="设置同步间隔时间">
                 <TextField
                   {...title}
                   label="Title"
                   labelHidden
-                  helpText="Only store staff can see this title"
+                  helpText="请输入整数, 单位秒"
                 />
               </Card>
 
-              <Card title="选择商品">
-                <TitleBar
-                  title="库存同步"
-                  // primaryAction={{
-                  //   content: 'Select products',
-                  //   onAction: toggleResourcePicker,
-                  // }}
-                />
+              <Card sectioned title="选择需要同步库存的商品">
                 <ResourcePicker
                   resourceType="Product"
                   showVariants={false}
@@ -140,25 +182,26 @@ export default function HomePage() {
                   onSelection={(resources) => handleSelection(resources)}
                   onCancel={toggleResourcePicker}
                 />
-                {emptyState ? (
-                  <Layout>
-                    <EmptyState
-                      heading="选择需要同步库存的商品"
-                      action={{
-                        content: "Select products",
-                        onAction: toggleResourcePicker,
-                      }}
-                      image={img}
-                    >
-                      <p>选择需要同步库存的商品</p>
-                    </EmptyState>
-                  </Layout>
-                ) : (
-                  <ResourceListWithProducts></ResourceListWithProducts>
-                )}
+                <Button primary onClick={toggleResourcePicker}>
+                  Add product
+                </Button>
               </Card>
             </FormLayout>
           </Form>
+        </Layout.Section>
+
+        <Layout.Section>
+          <Card
+            title={
+              isFetching ? "正在查询选择的商品...." : "已选择同步库存的商品"
+            }
+            actions={[{ content: "选择商品", onAction: toggleResourcePicker }]}
+          >
+            <SelectedProductsForSync
+              products={responseData}
+              isLoading={isFetching}
+            ></SelectedProductsForSync>
+          </Card>
         </Layout.Section>
       </Layout>
     </Page>
