@@ -168,3 +168,76 @@ mutation productVariantUpdate($input: ProductVariantInput!) {
 }
 
 ```
+
+// 更新库存需要先确定 locations id
+// 也就是不同地址的仓库都有库存
+
+有了 location id 后才可以更新某个 location 的库存
+
+具体参考这篇文章 , 有涉及到怎么查询和更新库存
+
+<https://www.shopify.com/partners/blog/multi-location_and_graphql>
+
+比如
+
+```js
+{
+  shop {
+    locations(first: 10) {
+      edges {
+        node {
+          name
+          id
+        }
+      }
+    }
+  }
+}
+```
+
+//
+
+```js
+
+query getProducts($ids: [ID!]!) {
+  nodes(ids: $ids) {
+    ... on Product {
+      title
+      handle
+      descriptionHtml
+      id
+      images(first: 1) {
+        edges {
+          node {
+            originalSrc
+            altText
+          }
+        }
+      }
+      variants(first: 1) {
+        edges {
+          node {
+            price
+            id
+            inventoryQuantity
+            inventoryItem {
+              id
+              locationsCount
+              inventoryLevels(first: 2) {
+                edges {
+                  node {
+                    available
+                    location {
+                      name
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```

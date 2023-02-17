@@ -1,3 +1,4 @@
+/* eslint-disable react/react-in-jsx-scope */
 import { Redirect } from "@shopify/app-bridge/actions";
 import { useAppBridge, Loading } from "@shopify/app-bridge-react";
 import { useEffect } from "react";
