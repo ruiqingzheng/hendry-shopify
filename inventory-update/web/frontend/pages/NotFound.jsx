@@ -1,3 +1,4 @@
+/* eslint-disable react/react-in-jsx-scope */
 import { Card, EmptyState, Page } from "@shopify/polaris";
 import { notFoundImage } from "../assets";
 
