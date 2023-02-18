@@ -4,14 +4,21 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
+    "@shopify/shopify-api": "^6.2.0",
     "crypto": "^1.0.1",
     "express": "^4.18.2",
     "raw-body": "^2.5.1"
   },
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "nodemon  --require @babel/register index.js"
   },
   "devDependencies": {
-    "dotenv": "^16.0.3"
+    "@babel/cli": "^7.20.7",
+    "@babel/core": "^7.20.12",
+    "@babel/preset-env": "^7.20.2",
+    "@babel/register": "^7.18.9",
+    "core-js": "3.27.2",
+    "dotenv": "^16.0.3",
+    "nodemon": "^2.0.20"
   }
 }
